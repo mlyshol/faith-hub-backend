@@ -10,7 +10,7 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true,
 });
 const db = mongoose.connection;
-db.on("error", error => console.error("Connection error:", error));
+db.on("error", (error) => console.error("Connection error:", error));
 db.once("open", () => console.log("Connected to database"));
 
 // Define a Schema for page configurations
@@ -18,42 +18,104 @@ const pageSchema = new mongoose.Schema({
   pageId: { type: String, required: true, unique: true }, // e.g., "faithchristianliving"
   title: String,
   description: String,
-  searchQuery: String,           // Default YouTube search term for the page
+  searchQuery: String, // Default YouTube search term for the page
   defaultSort: { type: String, default: "relevance" },
-  subcategories: [String]        // Array of subcategory names for filtering
+  subcategories: [String], // Array of subcategory names for filtering
 });
 const Page = mongoose.model("Page", pageSchema);
 
+// Define a Schema for videos (storing fetched YouTube data)
+const videoSchema = new mongoose.Schema({
+  videoId: { type: String, required: true, unique: true },
+  title: String,
+  description: String,
+  thumbnail: String,
+  publishedAt: Date,
+  viewCount: Number,
+  likeCount: Number,
+  commentCount: Number,
+  searchQuery: String, // The search term that found this video
+});
+
+const Video = mongoose.model("Video", videoSchema);
+
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const apiKey = process.env.YOUTUBE_API_KEY;
 
-// Endpoint to fetch sermons from YouTube
-app.get("/api/sermons", async (req, res) => {
+// **API Route to Fetch Videos from Database**
+app.get("/api/videos/:searchQuery", async (req, res) => {
   try {
-    const searchQuery = req.query.q + " Christian Sermons" || "Christian Sermons";
-    const pageToken = req.query.pageToken || "";
-    const sortOrder = req.query.order || "relevance"; // Default to relevance
+    const searchQuery = req.params.searchQuery;
 
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
-      searchQuery
-    )}&type=video&maxResults=8&order=${sortOrder}&pageToken=${pageToken}&key=${apiKey}`;
+    // Search MongoDB for videos that contain the query in the title or description
+    const videos = await Video.find({
+      $or: [
+        { title: { $regex: searchQuery, $options: "i" } },
+        { description: { $regex: searchQuery, $options: "i" } },
+        { searchQuery: { $regex: searchQuery, $options: "i" } }, // Matches stored search term
+      ],
+    }).sort({ viewCount: -1 }).limit(10); // Sort by most views
 
-    const response = await fetch(url);
-    const data = await response.json();
+    if (!videos.length) {
+      return res.status(404).json({ message: "No videos found matching the query." });
+    }
 
-    res.json({
-      items: data.items,
-      nextPageToken: data.nextPageToken || null,
-    });
+    res.json(videos);
   } catch (error) {
-    console.error("Error fetching sermons:", error);
-    res.status(500).json({ error: "Failed to fetch sermons" });
+    console.error("Error searching videos in MongoDB:", error);
+    res.status(500).json({ error: "Failed to search videos" });
   }
 });
 
-// Endpoint to serve page configuration from your database
+// **API Route to Fetch and Store YouTube Videos**
+app.get("/api/fetch-videos/:query", async (req, res) => {
+  try {
+    const query = req.params.query;
+    console.log(`Fetching YouTube videos for: ${query}`);
+
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`;
+    const searchResponse = await fetch(searchUrl);
+    const searchData = await searchResponse.json();
+
+    if (!searchData.items) return res.status(404).json({ error: "No videos found" });
+
+    const videoIds = searchData.items.map((item) => item.id.videoId).join(",");
+    const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${apiKey}`;
+    const statsResponse = await fetch(statsUrl);
+    const statsData = await statsResponse.json();
+
+    const videoDetails = statsData.items.map((video) => ({
+      videoId: video.id,
+      title: video.snippet.title,
+      description: video.snippet.description,
+      thumbnail: video.snippet.thumbnails.default.url,
+      publishedAt: video.snippet.publishedAt,
+      viewCount: parseInt(video.statistics.viewCount, 10) || 0,
+      likeCount: parseInt(video.statistics.likeCount, 10) || 0,
+      commentCount: parseInt(video.statistics.commentCount, 10) || 0,
+      searchQuery: query,
+    }));
+
+    // Save or update in MongoDB
+    for (const video of videoDetails) {
+      await Video.findOneAndUpdate(
+        { videoId: video.videoId },
+        video,
+        { upsert: true, new: true }
+      );
+    }
+
+    res.json({ message: "Videos successfully updated in database", videos: videoDetails });
+  } catch (error) {
+    console.error("Error fetching YouTube videos:", error);
+    res.status(500).json({ error: "Failed to retrieve videos" });
+  }
+});
+
+// **API Route to Fetch Page Configuration from Database**
 app.get("/api/pages/:pageId", async (req, res) => {
   try {
     const { pageId } = req.params;
