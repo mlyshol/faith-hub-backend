@@ -79,11 +79,12 @@ const saveVideosToDatabase = async (videos) => {
   }
 };
 
-// Run the script with a sample query
-const run = async () => {
-  const query = "Christian Sermons"; // Change this to any search term
-  console.log(`Fetching YouTube videos for: ${query}`);
+const run = async (additionalQuery = "") => {
+  const baseQuery = "Christian Sermons"; // Default search term
+  const query = additionalQuery ? `${additionalQuery} ${baseQuery}` : baseQuery; // Append parameter
   
+  console.log(`Fetching YouTube videos for: ${query}`);
+
   const videos = await fetchYouTubeVideos(query);
   if (videos.length) {
     await saveVideosToDatabase(videos);
@@ -95,4 +96,6 @@ const run = async () => {
   mongoose.disconnect();
 };
 
-run();
+// Call run() with a parameter (e.g., "Faith")
+const additionalQuery = process.argv[2] || ""; // Allows passing arguments via CLI
+run(additionalQuery);

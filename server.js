@@ -45,28 +45,27 @@ app.use(express.json());
 
 const apiKey = process.env.YOUTUBE_API_KEY;
 
-// **API Route to Fetch Videos from Database**
 app.get("/api/videos/:searchQuery", async (req, res) => {
   try {
     const searchQuery = req.params.searchQuery;
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 6; // Load 6 at a time
+    const skip = (page - 1) * limit; // Calculate the number of items to skip
 
-    // Search MongoDB for videos that contain the query in the title or description
     const videos = await Video.find({
       $or: [
         { title: { $regex: searchQuery, $options: "i" } },
         { description: { $regex: searchQuery, $options: "i" } },
-        { searchQuery: { $regex: searchQuery, $options: "i" } }, // Matches stored search term
       ],
-    }).sort({ viewCount: -1 }).limit(10); // Sort by most views
-
-    if (!videos.length) {
-      return res.status(404).json({ message: "No videos found matching the query." });
-    }
+    })
+      .sort({ viewCount: -1 }) // Sort by most views
+      .skip(skip) // Skips previous pages
+      .limit(limit); // Limits results per request
 
     res.json(videos);
   } catch (error) {
-    console.error("Error searching videos in MongoDB:", error);
-    res.status(500).json({ error: "Failed to search videos" });
+    console.error("Error fetching videos:", error);
+    res.status(500).json({ error: "Failed to retrieve videos" });
   }
 });
 
