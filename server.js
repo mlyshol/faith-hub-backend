@@ -43,19 +43,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const apiKey = process.env.YOUTUBE_API_KEY;
+const graceKey = process.env.YOUTUBE_API_GRACE;
 
 app.get("/api/videos/:searchQuery", async (req, res) => {
   try {
     const searchQuery = req.params.searchQuery;
     const page = parseInt(req.query.page) || 1; // Default to page 1
     const limit = parseInt(req.query.limit) || 6; // Load 6 at a time
-    const skip = (page - 1) * limit; // Calculate the number of items to skip
+    const skip = (page - 1) * limit; // Calculate number of items to skip
 
     const videos = await Video.find({
       $or: [
-        { title: { $regex: searchQuery, $options: "i" } },
-        { description: { $regex: searchQuery, $options: "i" } },
+        { searchQuery: searchQuery }, // ✅ Exact match on searchQuery
+        { title: { $regex: searchQuery, $options: "i" } }, // ✅ Partial match in title
+        { description: { $regex: searchQuery, $options: "i" } }, // ✅ Partial match in description
       ],
     })
       .sort({ viewCount: -1 }) // Sort by most views
@@ -75,14 +76,14 @@ app.get("/api/fetch-videos/:query", async (req, res) => {
     const query = req.params.query;
     console.log(`Fetching YouTube videos for: ${query}`);
 
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${apiKey}`;
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&key=${graceKey}`;
     const searchResponse = await fetch(searchUrl);
     const searchData = await searchResponse.json();
 
     if (!searchData.items) return res.status(404).json({ error: "No videos found" });
 
     const videoIds = searchData.items.map((item) => item.id.videoId).join(",");
-    const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${apiKey}`;
+    const statsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoIds}&key=${graceKey}`;
     const statsResponse = await fetch(statsUrl);
     const statsData = await statsResponse.json();
 
