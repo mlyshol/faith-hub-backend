@@ -32,19 +32,15 @@ const subcategories = [
   { subcategory: "Membership", apiKeyName: "YOUTUBE_API_KEY_MEMBERSHIP" },
   { subcategory: "Stewardship", apiKeyName: "YOUTUBE_API_KEY_STEWARDSHIP" },
   { subcategory: "Church History", apiKeyName: "YOUTUBE_API_KEY_CHURCH_HISTORY" },
-  { subcategory: "Genesis", apiKeyName: "YOUTUBE_API_KEY_GENESIS" },
-  { subcategory: "Psalms", apiKeyName: "YOUTUBE_API_KEY_PSALMS" },
+  { subcategory: "Old Testament", apiKeyName: "YOUTUBE_API_KEY_OLD_TESTAMENT" },
+  { subcategory: "New Testament", apiKeyName: "YOUTUBE_API_KEY_NEW_TESTAMENT" },
   { subcategory: "Gospels", apiKeyName: "YOUTUBE_API_KEY_GOSPELS" },
-  { subcategory: "Romans", apiKeyName: "YOUTUBE_API_KEY_ROMANS" },
-  { subcategory: "Revelation", apiKeyName: "YOUTUBE_API_KEY_REVELATION" },
-  { subcategory: "Defending the Christian Faith", apiKeyName: "YOUTUBE_API_KEY_DEFENDING_FAITH" },
-  { subcategory: "Understanding Doctrine & Biblical Interpretation", apiKeyName: "YOUTUBE_API_KEY_DOCTRINE" },
-  { subcategory: "Signs of the Last Days & Biblical Prophecy", apiKeyName: "YOUTUBE_API_KEY_BIBLICAL_PROPHECY" },
-  { subcategory: "The Book of Revelation & End Times Theology", apiKeyName: "YOUTUBE_API_KEY_END_TIMES" },
-  { subcategory: "Conversion Stories", apiKeyName: "YOUTUBE_API_KEY_CONVERSION_STORIES" },
-  { subcategory: "Miracle Testimonies", apiKeyName: "YOUTUBE_API_KEY_MIRACLE_TESTIMONIES" },
-  { subcategory: "Overcoming Struggles", apiKeyName: "YOUTUBE_API_KEY_OVERCOMING_STRUGGLES" },
-  { subcategory: "Living Out Faith", apiKeyName: "YOUTUBE_API_KEY_LIVING_FAITH" },
+  { subcategory: "Doctrine", apiKeyName: "YOUTUBE_API_KEY_DOCTRINE" },
+  { subcategory: "Prophecy", apiKeyName: "YOUTUBE_API_KEY_PROPHECY" },
+  { subcategory: "Tim Keller", apiKeyName: "YOUTUBE_API_KEY_TIM_KELLER" },
+  { subcategory: "Greg Laurie", apiKeyName: "YOUTUBE_API_KEY_GREG_LAURIE" },
+  { subcategory: "John Piper", apiKeyName: "YOUTUBE_API_KEY_JOHN_PIPER" },
+  { subcategory: "Alistair Begg", apiKeyName: "YOUTUBE_API_KEY_ALISTAIR_BEGG" }
 ];
 
 // Function to Populate Database

@@ -27,7 +27,7 @@ const pages = [
     title: "Faith & Christian Living",
     description: "Sermons that focus on daily living in Christ's love, discipleship, and spiritual growth.",
     searchQuery: "Faith Christian Living sermons",
-    defaultSort: "relevance",
+    defaultSort: "likeCount",
     subcategories: ["Grace", "Salvation", "Prayer", "Worship", "Spiritual Growth"],
   },
   {
@@ -35,7 +35,7 @@ const pages = [
     title: "Church & Leadership",
     description: "Sermons that promote church leadership principles, community, and commitment.",
     searchQuery: "Church Leadership sermons",
-    defaultSort: "relevance",
+    defaultSort: "likeCount",
     subcategories: ["Leadership", "Membership", "Stewardship", "Church History"],
   },
   {
@@ -43,29 +43,21 @@ const pages = [
     title: "Biblical Books & Teachings",
     description: "Sermons derived from books of the Bible, discussing foundational texts and teachings.",
     searchQuery: "Biblical Books sermons",
-    defaultSort: "relevance",
-    subcategories: ["Genesis", "Psalms", "Gospels", "Romans", "Revelation"],
+    defaultSort: "likeCount",
+    subcategories: ["Old Testament", "New Testament", "Gospels", "Doctrine", "Prophecy"],
   },
   {
-    pageId: "apologeticsendtimes",
-    title: "Apologetics & End Times",
-    description: "Sermons on defending the faith, prophecy, and understanding the end times.",
-    searchQuery: "Christian apologetics sermons",
-    defaultSort: "relevance",
+    pageId: "featuredpastors",
+    title: "Featured Pastors",
+    description: " Explore our curated selection of featured pastors, whose transformative leadership and impactful teachings inspire and guide believers on their journey of faith.",
+    searchQuery: "Featured Pastors sermons",
+    defaultSort: "likeCount",
     subcategories: [
-      "Defending the Christian Faith", 
-      "Understanding Doctrine & Biblical Interpretation", 
-      "Signs of the Last Days & Biblical Prophecy", 
-      "The Book of Revelation & End Times Theology"
+      "Tim Keller", 
+      "Greg Laurie", 
+      "John Piper", 
+      "Alistair Begg",
     ],
-  },
-  {
-    pageId: "testimonies",
-    title: "Testimonies & Personal Stories",
-    description: "Powerful personal accounts and testimonies that inspire and uplift.",
-    searchQuery: "Christian testimonies sermons",
-    defaultSort: "relevance",
-    subcategories: ["Conversion Stories", "Miracle Testimonies", "Overcoming Struggles", "Living Out Faith"],
   },
 ];
 

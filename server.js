@@ -45,23 +45,39 @@ app.use(express.json());
 
 const graceKey = process.env.YOUTUBE_API_GRACE;
 
+// Example Express endpoint update
 app.get("/api/videos/:searchQuery", async (req, res) => {
   try {
     const searchQuery = req.params.searchQuery;
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit) || 6; // Load 6 at a time
-    const skip = (page - 1) * limit; // Calculate number of items to skip
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+    const sortField = req.query.sort;
+
+    let sortObj = {};
+    if (sortField === "likeCount") {
+      sortObj.likeCount = -1;
+    } else if (sortField === "viewCount") {
+      sortObj.viewCount = -1;
+    } else if (sortField === "publishedAt") {
+      sortObj.publishedAt = -1;
+    } else if (sortField === "commentCount") {
+      sortObj.commentCount = -1;
+    } else {
+      // Default sort (fallback)
+      sortObj.viewCount = -1;
+    }
 
     const videos = await Video.find({
       $or: [
-        { searchQuery: searchQuery }, // ✅ Exact match on searchQuery
-        { title: { $regex: searchQuery, $options: "i" } }, // ✅ Partial match in title
-        { description: { $regex: searchQuery, $options: "i" } }, // ✅ Partial match in description
+        { searchQuery: searchQuery },
+        { title: { $regex: searchQuery, $options: "i" } },
+        { description: { $regex: searchQuery, $options: "i" } },
       ],
     })
-      .sort({ viewCount: -1 }) // Sort by most views
-      .skip(skip) // Skips previous pages
-      .limit(limit); // Limits results per request
+      .sort(sortObj)
+      .skip(skip)
+      .limit(limit);
 
     res.json(videos);
   } catch (error) {

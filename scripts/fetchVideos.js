@@ -26,7 +26,6 @@ const videoSchema = new mongoose.Schema({
   searchQuery: String,
   sortType: String,
 });
-
 const Video = mongoose.model("Video", videoSchema);
 
 // Define VideoFetching Schema (For Subcategory Lookup)
@@ -34,13 +33,14 @@ const videoFetchingSchema = new mongoose.Schema({
   subcategory: { type: String, required: true, unique: true }, // Example: "Grace"
   apiKeyName: { type: String, required: true }, // Example: "YOUTUBE_API_KEY_GRACE"
 });
-
 const VideoFetching = mongoose.model("VideoFetching", videoFetchingSchema);
 
-// Fetch YouTube videos
+// Fetch YouTube videos for a given query, sort type, and API key
 const fetchYouTubeVideos = async (query, sortType, apiKey) => {
   try {
-    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=50&order=${sortType}&key=${apiKey}`;
+    const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+      query
+    )}&type=video&maxResults=50&order=${sortType}&key=${apiKey}`;
     const searchResponse = await fetch(searchUrl);
     const searchData = await searchResponse.json();
 
@@ -68,7 +68,7 @@ const fetchYouTubeVideos = async (query, sortType, apiKey) => {
       sortType,
     }));
   } catch (error) {
-    console.error(`Error fetching YouTube videos for sorting type "${sortType}":`, error);
+    console.error(`Error fetching YouTube videos for sort "${sortType}":`, error);
     return [];
   }
 };
@@ -89,49 +89,50 @@ const saveVideosToDatabase = async (videos) => {
   }
 };
 
-// Run script with parameter for subcategory lookup
+// Run script: Automatically fetch data from all records in VideoFetching collection
 const run = async () => {
-  const subcategoryInput = process.argv[2]; // Get parameter from CLI
-  if (!subcategoryInput) {
-    console.error("Error: No subcategory provided.");
-    mongoose.disconnect();
-    return;
-  }
-
-  // Look up subcategory in VideoFetching collection
-  const subcategory = await VideoFetching.findOne({ subcategory: subcategoryInput });
-  if (!subcategory) {
-    console.error(`Error: Subcategory "${subcategoryInput}" not found.`);
-    mongoose.disconnect();
-    return;
-  }
-
-  // Get API key name and retrieve actual key from .env
-  const apiKey = process.env[subcategory.apiKeyName]; 
-  if (!apiKey) {
-    console.error(`Error: API key not found for subcategory "${subcategoryInput}".`);
-    mongoose.disconnect();
-    return;
-  }
-
-  const query = `${subcategoryInput} Christian Sermons`;
-  const sortTypes = ["relevance", "rating", "viewCount", "date"]; // Sorting methods
-
-  console.log(`Fetching YouTube videos for: ${query} (Using API Key: ${subcategory.apiKeyName})`);
-
-  for (const sortType of sortTypes) {
-    console.log(`Fetching videos sorted by: ${sortType}`);
-    const videos = await fetchYouTubeVideos(query, sortType, apiKey);
-    if (videos.length) {
-      await saveVideosToDatabase(videos);
-      console.log(`Database update complete for: ${sortType}`);
-    } else {
-      console.log(`No new videos found for sorting: ${sortType}`);
+  try {
+    // Retrieve all subcategory records from VideoFetching collection
+    const videoFetchRecords = await VideoFetching.find({});
+    if (videoFetchRecords.length === 0) {
+      console.error("No records found in VideoFetching collection.");
+      mongoose.disconnect();
+      return;
     }
-  }
 
-  mongoose.disconnect();
+    // Define the sorting methods to iterate over
+    const sortTypes = ["relevance", "rating", "viewCount", "date"];
+
+    // Process each subcategory record
+    for (const record of videoFetchRecords) {
+      const subcategoryInput = record.subcategory;
+      const apiKey = process.env[record.apiKeyName];
+      if (!apiKey) {
+        console.error(`Error: API key not found for subcategory "${subcategoryInput}". Skipping.`);
+        continue;
+      }
+
+      const query = `${subcategoryInput} Christian Sermons`;
+      console.log(`\nFetching YouTube videos for subcategory: "${subcategoryInput}" using API key: ${record.apiKeyName}`);
+
+      // Fetch videos for each sorting method
+      for (const sortType of sortTypes) {
+        console.log(`Fetching videos sorted by: ${sortType}`);
+        const videos = await fetchYouTubeVideos(query, sortType, apiKey);
+        if (videos.length) {
+          await saveVideosToDatabase(videos);
+          console.log(`Database update complete for subcategory: "${subcategoryInput}" with sort: "${sortType}"`);
+        } else {
+          console.log(`No new videos found for sorting: "${sortType}" for subcategory: "${subcategoryInput}"`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error during processing:", error);
+  } finally {
+    mongoose.disconnect();
+  }
 };
 
-// Run script
+// Run the script
 run();
