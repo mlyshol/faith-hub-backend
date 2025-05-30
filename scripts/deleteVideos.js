@@ -24,6 +24,7 @@ const videoSchema = new mongoose.Schema({
   likeCount: Number,
   commentCount: Number,
   searchQuery: String,
+  isActive: true,
 });
 
 const Video = mongoose.model("Video", videoSchema);
