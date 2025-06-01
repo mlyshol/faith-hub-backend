@@ -146,9 +146,6 @@ app.get("/api/pages/:pageId", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
 // Admin endpoint: Get videos needing review
 app.get("/api/admin/videos/needs-review", async (req, res) => {
   try {
@@ -186,3 +183,6 @@ app.put("/api/admin/videos/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update video status" });
   }
 });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
