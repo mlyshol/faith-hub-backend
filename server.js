@@ -148,3 +148,41 @@ app.get("/api/pages/:pageId", async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+// Admin endpoint: Get videos needing review
+app.get("/api/admin/videos/needs-review", async (req, res) => {
+  try {
+    // Find videos with status "Needs Review" and not marked to be deleted
+    const videos = await Video.find({
+      status: "Needs Review",
+      toBeDeleted: false,
+    });
+    res.json(videos);
+  } catch (error) {
+    console.error("Error fetching videos for review:", error);
+    res.status(500).json({ error: "Failed to retrieve videos for review" });
+  }
+});
+
+// Admin endpoint: Update video status by video _id
+app.put("/api/admin/videos/:id", async (req, res) => {
+  try {
+    const { status } = req.body; // Expected to be "Published", "Needs Review", or "Unpublished"
+    // Optionally, validate the value of status before updating
+    if (!["Published", "Needs Review", "Unpublished"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status provided" });
+    }
+    const updatedVideo = await Video.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+    if (!updatedVideo) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+    res.json(updatedVideo);
+  } catch (error) {
+    console.error("Error updating video status:", error);
+    res.status(500).json({ error: "Failed to update video status" });
+  }
+});
