@@ -43,8 +43,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const graceKey = process.env.YOUTUBE_API_GRACE;
-
 // Example Express endpoint update
 app.get("/api/videos/:searchQuery", async (req, res) => {
   try {
@@ -69,6 +67,8 @@ app.get("/api/videos/:searchQuery", async (req, res) => {
     }
 
     const videos = await Video.find({
+      status: "Published",         // Only include videos marked as Published
+      toBeDeleted: false,          // Exclude videos marked for deletion
       $or: [
         { searchQuery: searchQuery },
         { title: { $regex: searchQuery, $options: "i" } },

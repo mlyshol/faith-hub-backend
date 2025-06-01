@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import fetch from "node-fetch";
 import dotenv from "dotenv";
 import cron from "node-cron";
-import Video from "../models/videoModel.js"; // Import your video schema
+import { Video, VideoFetching } from "../models/videoModel.js";
 
 dotenv.config();
 
