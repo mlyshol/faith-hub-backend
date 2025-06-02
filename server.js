@@ -175,15 +175,14 @@ app.put("/api/admin/videos/:id", async (req, res) => {
     const preUpdateVideo = await Video.findById(req.params.id);
     console.log("Before Update:", preUpdateVideo);
 
-    const updatedVideo = await Video.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true, useFindAndModify: false  }
-    );
-
-    if (!updatedVideo) {
+    const video = await Video.findById(req.params.id);
+    if (!video) {
+      console.log("No video found with id:", req.params.id);
       return res.status(404).json({ error: "Video not found" });
     }
+
+    video.status = status;
+    await video.save(); // Forcefully persist changes
 
     console.log("After Update:", updatedVideo);
     res.json(updatedVideo);
