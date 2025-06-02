@@ -164,6 +164,7 @@ app.get("/api/admin/videos/needs-review", async (req, res) => {
 // Admin endpoint: Update video status by video _id
 app.put("/api/admin/videos/:id", async (req, res) => {
   try {
+    console.log(req.body);
     const { status } = req.body;
     console.log("Updating video ID:", req.params.id, "New Status:", status);
 
