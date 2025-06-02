@@ -163,19 +163,34 @@ app.get("/api/admin/videos/needs-review", async (req, res) => {
 
 // Admin endpoint: Update video status by video _id
 app.put("/api/admin/videos/:id", async (req, res) => {
-  console.log("Received body:", req.body); // Debugging step
+  try {
+    console.log(req.body);
+    const { status } = req.body;
+    console.log("Updating video ID:", req.params.id, "New Status:", status);
 
-  const { status } = req.body; 
-  if (!status) {
-    return res.status(400).json({ error: "Status is required" });
+    if (!["Published", "Needs Review", "Unpublished"].includes(status)) {
+      return res.status(400).json({ error: "Invalid status provided" });
+    }
+
+    const preUpdateVideo = await Video.findById(req.params.id);
+    console.log("Before Update:", preUpdateVideo);
+
+    const updatedVideo = await Video.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedVideo) {
+      return res.status(404).json({ error: "Video not found" });
+    }
+
+    console.log("After Update:", updatedVideo);
+    res.json(updatedVideo);
+  } catch (error) {
+    console.error("Error updating video status:", error);
+    res.status(500).json({ error: "Failed to update video status" });
   }
-
-  const updatedVideo = await Video.updateOne(
-    { _id: req.params.id },
-    { $set: { status: status } }
-  );
-
-  res.json(updatedVideo);
 });
 
 const PORT = process.env.PORT || 5000;
