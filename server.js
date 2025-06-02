@@ -184,8 +184,7 @@ app.put("/api/admin/videos/:id", async (req, res) => {
     video.status = status;
     await video.save(); // Forcefully persist changes
 
-    console.log("After Update:", updatedVideo);
-    res.json(updatedVideo);
+    res.json(video);
   } catch (error) {
     console.error("Error updating video status:", error);
     res.status(500).json({ error: "Failed to update video status" });
