@@ -170,10 +170,9 @@ app.put("/api/admin/videos/:id", async (req, res) => {
     return res.status(400).json({ error: "Status is required" });
   }
 
-  const updatedVideo = await Video.findByIdAndUpdate(
-    req.params.id,
-    { status: status },
-    { new: true, runValidators: true }
+  const updatedVideo = await Video.updateOne(
+    { _id: req.params.id },
+    { $set: { status: status } }
   );
 
   res.json(updatedVideo);
