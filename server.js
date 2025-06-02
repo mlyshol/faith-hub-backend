@@ -164,19 +164,27 @@ app.get("/api/admin/videos/needs-review", async (req, res) => {
 // Admin endpoint: Update video status by video _id
 app.put("/api/admin/videos/:id", async (req, res) => {
   try {
-    const { status } = req.body; // Expected to be "Published", "Needs Review", or "Unpublished"
-    // Optionally, validate the value of status before updating
+    const { status } = req.body;
+    console.log("Updating video ID:", req.params.id, "New Status:", status);
+
     if (!["Published", "Needs Review", "Unpublished"].includes(status)) {
       return res.status(400).json({ error: "Invalid status provided" });
     }
+
+    const preUpdateVideo = await Video.findById(req.params.id);
+    console.log("Before Update:", preUpdateVideo);
+
     const updatedVideo = await Video.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true, runValidators: true }
     );
+
     if (!updatedVideo) {
       return res.status(404).json({ error: "Video not found" });
     }
+
+    console.log("After Update:", updatedVideo);
     res.json(updatedVideo);
   } catch (error) {
     console.error("Error updating video status:", error);
