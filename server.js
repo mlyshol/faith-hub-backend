@@ -172,7 +172,7 @@ app.put("/api/admin/videos/:id", async (req, res) => {
 
   const updatedVideo = await Video.findByIdAndUpdate(
     req.params.id,
-    { status },
+    { status: status },
     { new: true, runValidators: true }
   );
 
