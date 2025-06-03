@@ -35,6 +35,15 @@ const videoSchema = new mongoose.Schema({
   likeCount: Number,
   commentCount: Number,
   searchQuery: String, // The search term that found this video
+  status: { 
+    type: String, 
+    enum: ["Published", "Needs Review", "Unpublished"], 
+    default: "Needs Review" 
+  },
+  toBeDeleted: { 
+    type: Boolean, 
+    default: false 
+  }
 });
 
 const Video = mongoose.model("Video", videoSchema);
