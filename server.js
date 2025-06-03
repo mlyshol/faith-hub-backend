@@ -156,17 +156,36 @@ app.get("/api/pages/:pageId", async (req, res) => {
 });
 
 // Admin endpoint: Get videos needing review
-app.get("/api/admin/videos/needs-review", async (req, res) => {
+// New generic endpoint for admin videos with filtering and pagination
+app.get("/api/admin/videos", async (req, res) => {
   try {
-    // Find videos with status "Needs Review" and not marked to be deleted
-    const videos = await Video.find({
-      status: "Needs Review",
-      toBeDeleted: false,
-    });
+    // Extract query parameters. For example:
+    // GET /api/admin/videos?status=Published&page=1&limit=10
+    let { status, page, limit } = req.query;
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    // Build a filter object. We'll always exclude videos marked for deletion.
+    const filter = { toBeDeleted: false };
+
+    // If a status is provided (e.g. "Published", "Needs Review", or "Unpublished"), add it to the filter.
+    if (status) {
+      filter.status = status;
+    } else {
+      // Optionally, default to "Needs Review" if no status is provided.
+      filter.status = "Needs Review";
+    }
+
+    // Query videos with the filter and paginate the results.
+    const videos = await Video.find(filter)
+      .skip(skip)
+      .limit(limit);
+
     res.json(videos);
   } catch (error) {
-    console.error("Error fetching videos for review:", error);
-    res.status(500).json({ error: "Failed to retrieve videos for review" });
+    console.error("Error fetching admin videos:", error);
+    res.status(500).json({ error: "Failed to retrieve videos" });
   }
 });
 
